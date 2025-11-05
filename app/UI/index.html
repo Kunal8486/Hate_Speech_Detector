@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hate Speech Detector</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-shield-alt"></i> Hate Speech Detector</h1>
+            <p>Advanced AI-powered content moderation using multiple machine learning models</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="card">
+                    <h2><i class="fas fa-edit"></i> Text Input</h2>
+                    <textarea
+                        id="textInput"
+                        placeholder="Enter text to analyze for hate speech..."
+                        rows="4"
+                    ></textarea>
+
+                    <div class="model-selection">
+                        <h3><i class="fas fa-brain"></i> Select Model</h3>
+                        <div class="model-grid" id="modelGrid">
+                            <div class="model-card" data-model="logistic_regression">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Logistic Regression</span>
+                            </div>
+                            <div class="model-card" data-model="naive_bayes">
+                                <i class="fas fa-calculator"></i>
+                                <span>Naive Bayes</span>
+                            </div>
+                            <div class="model-card" data-model="random_forest">
+                                <i class="fas fa-tree"></i>
+                                <span>Random Forest</span>
+                            </div>
+                            <div class="model-card" data-model="distilbert">
+                                <i class="fas fa-robot"></i>
+                                <span>DistilBERT</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="analyzeBtn" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Analyze Text
+                        </button>
+                        <button id="compareBtn" class="btn btn-secondary">
+                            <i class="fas fa-balance-scale"></i> Compare All Models
+                        </button>
+                        <button id="clearBtn" class="btn btn-outline">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="card">
+                    <h2><i class="fas fa-chart-bar"></i> Analysis Results</h2>
+                    <div id="resultsContainer" class="results-container">
+                        <div class="empty-state">
+                            <i class="fas fa-chart-pie"></i>
+                            <p>Enter text and select a model to see analysis results</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="batch-analysis">
+            <div class="card">
+                <h2><i class="fas fa-list"></i> Batch Analysis</h2>
+                <div class="batch-input">
+                    <textarea
+                        id="batchInput"
+                        placeholder="Enter multiple texts (one per line) for batch analysis..."
+                        rows="3"
+                    ></textarea>
+                    <button id="batchAnalyzeBtn" class="btn btn-primary">
+                        <i class="fas fa-layer-group"></i> Analyze Batch
+                    </button>
+                </div>
+                <div id="batchResults" class="batch-results"></div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Built with <i class="fas fa-heart"></i> using Machine Learning & Deep Learning</p>
+        </footer>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Analyzing text...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
