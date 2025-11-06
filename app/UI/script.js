@@ -202,14 +202,16 @@ class HateSpeechDetectorUI {
             'logistic_regression': 'Logistic Regression',
             'naive_bayes': 'Naive Bayes',
             'random_forest': 'Random Forest',
-            'distilbert': 'DistilBERT'
+            'knn': 'K-Nearest Neighbors',
+            'svm': 'Support Vector Machine'
         };
 
         const modelIcons = {
             'logistic_regression': 'fas fa-chart-line',
             'naive_bayes': 'fas fa-calculator',
             'random_forest': 'fas fa-tree',
-            'distilbert': 'fas fa-robot'
+            'knn': 'fas fa-users',
+            'svm': 'fas fa-vector-square'
         };
 
         this.elements.resultsContainer.innerHTML = `
@@ -246,14 +248,16 @@ class HateSpeechDetectorUI {
             'logistic_regression': 'Logistic Regression',
             'naive_bayes': 'Naive Bayes',
             'random_forest': 'Random Forest',
-            'distilbert': 'DistilBERT'
+            'knn': 'K-Nearest Neighbors',
+            'svm': 'Support Vector Machine'
         };
 
         const modelIcons = {
             'logistic_regression': 'fas fa-chart-line',
             'naive_bayes': 'fas fa-calculator',
             'random_forest': 'fas fa-tree',
-            'distilbert': 'fas fa-robot'
+            'knn': 'fas fa-users',
+            'svm': 'fas fa-vector-square'
         };
 
         let html = '';

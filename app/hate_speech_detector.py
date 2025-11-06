@@ -1,6 +1,4 @@
 import joblib
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
 
 class HateSpeechDetector:
@@ -30,13 +28,18 @@ class HateSpeechDetector:
                 self.vectorizers['random_forest'] = joblib.load('../Random Forest/tfidf_vectorizer.pkl')
                 print("✅ Loaded Random Forest model")
 
-            # Load DistilBERT
-            if os.path.exists('../Distilbert/hate_speech_distilbert'):
-                self.models['distilbert'] = AutoModelForSequenceClassification.from_pretrained('../Distilbert/hate_speech_distilbert')
-                self.vectorizers['distilbert'] = AutoTokenizer.from_pretrained('../Distilbert/hate_speech_distilbert')
-                self.device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-                self.models['distilbert'].to(self.device)
-                print("✅ Loaded DistilBERT model")
+            # Load KNN
+            if os.path.exists('../KNN/knn_hatespeech.pkl'):
+                self.models['knn'] = joblib.load('../KNN/knn_hatespeech.pkl')
+                self.vectorizers['knn'] = joblib.load('../KNN/knn_tfidf_vectorizer.pkl')
+                print("✅ Loaded KNN model")
+
+            # Load SVM
+            if os.path.exists('../SVM/svm_hatespeech.pkl'):
+                self.models['svm'] = joblib.load('../SVM/svm_hatespeech.pkl')
+                self.vectorizers['svm'] = joblib.load('../SVM/svm_tfidf_vectorizer.pkl')
+                print("✅ Loaded SVM model")
+
 
         except Exception as e:
             print(f"❌ Error loading models: {e}")
@@ -51,63 +54,55 @@ class HateSpeechDetector:
             return {"error": f"Model '{model_name}' not available"}
 
         try:
-            if model_name == 'distilbert':
-                return self._predict_distilbert(text)
-            else:
-                return self._predict_sklearn(text, model_name)
+            return self._predict_sklearn(text, model_name)
         except Exception as e:
             return {"error": f"Prediction failed: {str(e)}"}
 
     def _predict_sklearn(self, text, model_name):
-        """Predict using sklearn models (Logistic Regression, Naive Bayes, Random Forest)"""
+        """Predict using sklearn models (Logistic Regression, Naive Bayes, Random Forest, KNN, SVM)"""
         model = self.models[model_name]
         vectorizer = self.vectorizers[model_name]
 
         # Transform text
         text_vectorized = vectorizer.transform([text])
 
-        # Get prediction and probability
+        # Get prediction
         prediction = model.predict(text_vectorized)[0]
-        probabilities = model.predict_proba(text_vectorized)[0]
+
+        # Check if model supports predict_proba (SVM LinearSVC doesn't)
+        if hasattr(model, "predict_proba"):
+            probabilities = model.predict_proba(text_vectorized)[0]
+            confidence = float(max(probabilities))
+            prob_normal = float(probabilities[0])
+            prob_hate = float(probabilities[1])
+        else:
+            # For models without predict_proba, use decision_function or default values
+            if hasattr(model, "decision_function"):
+                decision_score = model.decision_function(text_vectorized)[0]
+                # Convert decision score to pseudo-probability
+                confidence = min(0.99, max(0.51, abs(decision_score) / 10.0))
+                if prediction == 1:
+                    prob_hate = confidence
+                    prob_normal = 1.0 - confidence
+                else:
+                    prob_normal = confidence
+                    prob_hate = 1.0 - confidence
+            else:
+                # Default confidence for models without probability support
+                confidence = 0.8
+                prob_normal = 0.8 if prediction == 0 else 0.2
+                prob_hate = 0.8 if prediction == 1 else 0.2
 
         return {
             "prediction": int(prediction),
             "label": "Hate Speech" if prediction == 1 else "Normal",
-            "confidence": float(max(probabilities)),
+            "confidence": confidence,
             "probabilities": {
-                "normal": float(probabilities[0]),
-                "hate_speech": float(probabilities[1])
+                "normal": prob_normal,
+                "hate_speech": prob_hate
             }
         }
 
-    def _predict_distilbert(self, text):
-        """Predict using DistilBERT model"""
-        model = self.models['distilbert']
-        tokenizer = self.vectorizers['distilbert']
-
-        # Tokenize
-        inputs = tokenizer(text, return_tensors="pt", truncation=True,
-                          padding=True, max_length=128)
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
-
-        # Predict
-        model.eval()
-        with torch.no_grad():
-            outputs = model(**inputs)
-            probabilities = torch.softmax(outputs.logits, dim=-1)
-            prediction = torch.argmax(probabilities, dim=-1).item()
-
-        probs = probabilities.cpu().numpy()[0]
-
-        return {
-            "prediction": int(prediction),
-            "label": "Hate Speech" if prediction == 1 else "Normal",
-            "confidence": float(max(probs)),
-            "probabilities": {
-                "normal": float(probs[0]),
-                "hate_speech": float(probs[1])
-            }
-        }
 
     def predict_batch(self, texts, model_name):
         """Predict hate speech for multiple texts"""
